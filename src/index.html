@@ -1,14 +1,90 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desarrollo Web Con React js</title>
-
-    <link rel="stylesheet" href="./index.css">
+    <title>Rick & Morty Characters</title>
 </head>
+   <link rel="stylesheet" href="./index.css">
 <body>
-    <div class="character-list"></div>
-    <script src="./index.js" type="module"></script>
+    <div id="character-container"></div>
+
+    <script>
+        class RickAndMortyService {
+            constructor() {
+                this.baseURL = 'https://rickandmortyapi.com/api/';
+            }
+            async getAllCharacters() {
+                try {
+                    const response = await fetch(`${this.baseURL}character`);
+                    const data = await response.json();
+                    if (response.ok) {
+                        const characters = data.results.map(character => ({
+                            name: character.name,
+                            status: character.status,
+                            species: character.species,
+                            firstSeen: character.origin.name,
+                            location: character.location.name,
+                            image: character.image,
+                            student: "Heyder Acevedo", 
+                            code: "206249",   
+                        }));
+
+                        return characters;
+                    } else {
+                        throw new Error(data.error || 'Error fetching characters');
+                    }
+                } catch (error) {
+                    console.error('Error:', error.message);
+                    return []; 
+                }
+            }
+        }
+
+        const service = new RickAndMortyService();
+        const container = document.getElementById('character-container');
+
+        function createCharacterList() {
+            service.getAllCharacters()
+                .then(characters => {
+                    characters.forEach(character => {
+                        const characterCard = createCharacterCard(character);
+                        container.innerHTML += characterCard;
+                        addCharacterListeners(character);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        }
+
+        function createCharacterCard(character) {
+            const statusCircleClass = character.status === 'Alive' ? 'alive' : 'dead' ;
+            return `
+                <div class="character">
+                    <img src="${character.image}" alt="${character.name}">
+                    <div class="character-info">
+                        <h2>${character.name}</h2>
+                        <h5 class="status-info">
+                            <span class="status-circle ${statusCircleClass}"></span>
+                            ${character.status}-${character.species}
+                        </h5>
+                        <h3>Last know location: <br><span>${character.location}</span></h3>
+                        <h4>First Seen in: <br><span>${character.firstSeen}</span></h4>
+                    </div>
+                </div>`;
+        }
+
+        function addCharacterListeners(character) {
+            const characterCards = container.querySelectorAll('.character');
+            characterCards.forEach(characterCard => {
+                characterCard.addEventListener('click', () => {
+                    alert(`Hola, soy ${character.name}`);
+                });
+            });
+        }
+
+        createCharacterList();
+    </script>
 </body>
 </html>
